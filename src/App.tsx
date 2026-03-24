@@ -1504,7 +1504,7 @@ const DietaryFilterModal = ({
                 <input
                   id={`toggle-${opt.id}`}
                   type="checkbox"
-                  className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 opacity-0"
+                  className="peer absolute inset-0 w-full h-full cursor-pointer z-10 opacity-0 m-0 p-0"
                   checked={localFilters[opt.id as keyof typeof localFilters]}
                   onChange={(e) => setLocalFilters({ ...localFilters, [opt.id]: e.target.checked })}
                 />
@@ -1719,6 +1719,12 @@ export default function App() {
       setIsMenuOpen(false);
       return;
     }
+      if (view === "menu" && activeView === "menu") {
+        setActiveView("home");
+        setIsMenuOpen(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
     setActiveView(view);
     setIsMenuOpen(false);
     setCurrentSlide(0);
