@@ -1,3 +1,15 @@
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react"
+declare global {
+  interface Window {
+    tailwind?: {
+      config?: any;
+    };
+  }
+}
+
+export {};
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Menu,
@@ -31,6 +43,7 @@ import {
   Moon,
   Sun,
   Star,
+  ArrowRight,
 } from "lucide-react";
 
 // --- CONFIGURARE TAILWIND ---
@@ -42,7 +55,7 @@ const injectTailwind = () => {
     document.head.appendChild(script);
 
     script.onload = () => {
-      window.tailwind.config = {
+      (window as any).tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
@@ -61,6 +74,10 @@ const injectTailwind = () => {
                 border: "#EAEAEA",
               },
             },
+            boxShadow: {
+              glow: "0 8px 32px rgba(217, 108, 39, 0.25)",
+              float: "0 -16px 40px rgba(0, 0, 0, 0.8)",
+            },
           },
         },
       };
@@ -69,10 +86,10 @@ const injectTailwind = () => {
 };
 
 // --- HELPER TRADUCERE ---
-const t = (lang, ro, en) => (lang === "RO" ? ro : en);
+const t = (lang: string, ro: string, en: string) => (lang === "RO" ? ro : en);
 // --- BAZA DE DATE MENIU REFRESH ---
 
-const getMenuCategories = (lang) => [
+const getMenuCategories = (lang: string) => [
   { id: "antipaste", name: t(lang, "Antipaste & Supe", "Appetizers & Soups") },
   { id: "pizza", name: t(lang, "Pizza & Focaccia", "Pizza & Focaccia") },
   { id: "paste", name: t(lang, "Paste & Risotto", "Pasta & Risotto") },
@@ -83,7 +100,7 @@ const getMenuCategories = (lang) => [
   { id: "bar", name: t(lang, "Vinuri & Bar", "Wines & Bar") },
 ];
 
-const getMenuData = (lang) => ({
+const getMenuData = (lang: string) => ({
   antipaste: [
     {
       name: "Burrata",
@@ -949,7 +966,7 @@ const getMenuData = (lang) => ({
 });
 
 // --- COMPONENTA PREPARAT (Acordeon Optimizat) ---
-const MenuItemCard = ({ item, index, lang }) => {
+const MenuItemCard = ({ item, index, lang }: { item: any; index: number; lang: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasBeenOpened, setHasBeenOpened] = useState(false);
 
@@ -1090,7 +1107,7 @@ const MenuItemCard = ({ item, index, lang }) => {
 };
 
 // --- COMPONENTA FOOTER LEGAL ---
-const LegalFooter = ({ lang, theme = "light" }) => {
+const LegalFooter = ({ lang, theme = "light" }: { lang: string; theme?: string }) => {
   const isDark = theme === "dark";
   const bgClass = isDark
     ? "bg-[#161616] border-gray-800 text-gray-400"
@@ -1178,11 +1195,174 @@ const LegalFooter = ({ lang, theme = "light" }) => {
   );
 };
 
+// --- COMPONENTA REZERVARE (Bottom Sheet iOS style) ---
+const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: string }) => {
+  const [partySize, setPartySize] = useState("2");
+  const [selectedDate, setSelectedDate] = useState(1);
+  const [selectedTime, setSelectedTime] = useState("19:00");
+  const [specialRequests, setSpecialRequests] = useState("");
+
+  const today = new Date();
+  const days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dayEn = d.toLocaleDateString("en-US", { weekday: "short" });
+    const dayRo = d.toLocaleDateString("ro-RO", { weekday: "short" });
+    return {
+      id: i,
+      label: i === 0 ? t(lang, "Azi", "Today") : i === 1 ? t(lang, "Mâine", "Tomorrow") : t(lang, dayRo, dayEn),
+      date: d.getDate().toString(),
+    };
+  });
+
+  const partyOptions = ["1", "2", "3", "4", "5+"];
+  const timeOptions = ["17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [isOpen]);
+
+  return (
+    <div className={`fixed inset-0 z-[200] ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+      {/* Overlay */}
+      <div
+        className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
+        onClick={onClose}
+      ></div>
+
+      {/* Bottom Sheet Modal Container */}
+      <div
+        className={`absolute inset-x-0 bottom-0 z-10 flex h-[85vh] max-h-[750px] flex-col rounded-t-[24px] bg-[#1A1817] shadow-float overflow-hidden transform transition-transform duration-400 ease-[cubic-bezier(0.32,0.72,0,1)] ${isOpen ? "translate-y-0" : "translate-y-full"}`}
+      >
+        {/* Handle & Header */}
+        <div className="flex flex-col items-center pt-4 pb-2 shrink-0 bg-[#1A1817] z-20 sticky top-0 border-b border-white/5">
+          <button onClick={onClose} aria-label="Drag to dismiss" className="h-1.5 w-12 rounded-full bg-gray-600/40 hover:bg-gray-600/60 transition-colors mb-6"></button>
+          <div className="w-full px-6 flex justify-between items-center">
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-white">{t(lang, "Rezervă o Masă", "Book a Table")}</h1>
+            <button onClick={onClose} aria-label="Close" className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 text-gray-400 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 pb-32 no-scrollbar">
+          {/* Party Size */}
+          <section className="mb-10">
+            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
+              <Users size={18} />
+              {t(lang, "Persoane", "Party Size")}
+            </h2>
+            <div className="flex justify-between items-center gap-2">
+              {partyOptions.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setPartySize(size)}
+                  className={`w-14 h-14 rounded-full border text-lg flex items-center justify-center transition-all ${
+                    partySize === size
+                      ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-semibold shadow-glow ring-1 ring-brand-accent/20"
+                      : "border-gray-700/50 text-gray-200 font-medium hover:bg-white/5"
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Date Selection */}
+          <section className="mb-10">
+            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
+              <CalendarCheck size={18} />
+              {t(lang, "Data", "Date")}
+            </h2>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
+              {days.map((day) => (
+                <button
+                  key={day.id}
+                  onClick={() => setSelectedDate(day.id)}
+                  className={`flex flex-col items-center justify-center min-w-[72px] py-3 rounded-xl border transition-all ${
+                    selectedDate === day.id
+                      ? "border-brand-accent bg-brand-accent/10 shadow-glow ring-1 ring-brand-accent/20"
+                      : "border-gray-700/50 bg-[#121212]/50 hover:bg-white/5"
+                  }`}
+                >
+                  <span className={`text-xs mb-1 ${selectedDate === day.id ? "text-brand-accent font-medium" : "text-gray-400"}`}>{day.label}</span>
+                  <span className={`text-xl ${selectedDate === day.id ? "font-bold text-brand-accent" : "font-semibold text-white"}`}>{day.date}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Time Selection */}
+          <section className="mb-10">
+            <div className="flex justify-between items-end mb-4">
+              <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium flex items-center gap-2">
+                <Clock size={18} />
+                {t(lang, "Ora", "Time")}
+              </h2>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {timeOptions.map((time) => (
+                <button
+                  key={time}
+                  onClick={() => setSelectedTime(time)}
+                  className={`py-3 rounded-lg border text-sm transition-all ${
+                    selectedTime === time
+                      ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-bold shadow-glow ring-1 ring-brand-accent/20"
+                      : "border-gray-700/50 bg-[#121212]/50 text-gray-200 font-medium hover:border-gray-500"
+                  }`}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Special Requests */}
+          <section className="mb-6">
+            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-2 flex items-center gap-2">
+              <Utensils size={18} />
+              {t(lang, "Cerințe Speciale", "Special Requests")}
+            </h2>
+            <div className="relative mt-2">
+              <input
+                id="requests"
+                type="text"
+                value={specialRequests}
+                onChange={(e) => setSpecialRequests(e.target.value)}
+                placeholder={t(lang, "Restricții alimentare, aniversări...", "Dietary restrictions, celebrations...")}
+                className="block w-full border-0 border-b border-gray-700 bg-transparent py-3 px-0 text-white focus:border-brand-accent focus:ring-0 sm:text-sm placeholder:text-gray-500 transition-colors"
+              />
+            </div>
+          </section>
+        </div>
+
+        {/* Fixed Bottom Action */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#1A1817] via-[#1A1817] to-transparent pt-12 pointer-events-none">
+          <button
+            onClick={onClose}
+            className="pointer-events-auto w-full h-[56px] rounded-full bg-brand-accent text-white font-semibold text-base shadow-glow flex items-center justify-center gap-2 hover:bg-brand-accentHover transition-all active:scale-[0.98]"
+          >
+            {t(lang, "Confirmă Rezervarea", "Confirm Booking")}
+            <ArrowRight size={20} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- APLICAȚIA PRINCIPALĂ ---
 export default function App() {
   const [activeView, setActiveView] = useState("home");
   const [isPreloading, setIsPreloading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [language, setLanguage] = useState("RO");
   const [activeMenuCategory, setActiveMenuCategory] = useState("pizza");
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1197,9 +1377,9 @@ export default function App() {
   // --- CELE 4 SLIDE-URI ---
   const slides = [
     {
-      title: (lang) => t(lang, "#REFRESH", "#REFRESH"),
-      subtitle: (lang) => t(lang, "RESTAURANT & PIZZA", "RESTAURANT & PIZZA"),
-      desc: (lang) =>
+      title: (lang: string) => t(lang, "#REFRESH", "#REFRESH"),
+      subtitle: (lang: string) => t(lang, "RESTAURANT & PIZZA", "RESTAURANT & PIZZA"),
+      desc: (lang: string) =>
         t(
           lang,
           "Design cald. Gust autentic. Experiența perfectă în Floreasca.",
@@ -1209,8 +1389,8 @@ export default function App() {
       type: "hero",
     },
     {
-      title: (lang) => t(lang, "PĂRERILE OASPEȚILOR", "GUEST REVIEWS"),
-      subtitle: (lang) =>
+      title: (lang: string) => t(lang, "PĂRERILE OASPEȚILOR", "GUEST REVIEWS"),
+      subtitle: (lang: string) =>
         t(lang, "4.5/5 DIN 345+ RECENZII", "4.5/5 FROM 345+ REVIEWS"),
       image: "download (4).png",
       type: "reviews",
@@ -1250,9 +1430,9 @@ export default function App() {
       ],
     },
     {
-      title: (lang) => t(lang, "PIZZA CALDĂ", "HOT PIZZA"),
-      subtitle: (lang) => t(lang, "ARTIZANALĂ", "ARTISAN"),
-      desc: (lang) =>
+      title: (lang: string) => t(lang, "PIZZA CALDĂ", "HOT PIZZA"),
+      subtitle: (lang: string) => t(lang, "ARTIZANALĂ", "ARTISAN"),
+      desc: (lang: string) =>
         t(
           lang,
           "Aluat maturat 48h, copt la foc iute cu ingrediente premium din Italia.",
@@ -1262,9 +1442,9 @@ export default function App() {
       type: "hero",
     },
     {
-      title: (lang) => t(lang, "TERASĂ ÎN AER LIBER", "OUTDOOR TERRACE"),
-      subtitle: (lang) => t(lang, "OAZĂ URBANĂ", "URBAN OASIS"),
-      desc: (lang) =>
+      title: (lang: string) => t(lang, "TERASĂ ÎN AER LIBER", "OUTDOOR TERRACE"),
+      subtitle: (lang: string) => t(lang, "OAZĂ URBANĂ", "URBAN OASIS"),
+      desc: (lang: string) =>
         t(
           lang,
           "Aer curat, cafea de specialitate și relaxare absolută lângă Parcul Glinka.",
@@ -1353,6 +1533,11 @@ export default function App() {
   }, [activeView, slides.length]);
 
   const navigate = (view) => {
+    if (view === "book") {
+      setIsReservationOpen(true);
+      setIsMenuOpen(false);
+      return;
+    }
     setActiveView(view);
     setIsMenuOpen(false);
     setCurrentSlide(0);
@@ -1601,7 +1786,7 @@ export default function App() {
     </div>
   );
 
-  const renderFormPage = (title, subtitle, fields, actionText) => (
+  const renderFormPage = (title: string, subtitle: string, fields: any[], actionText: string) => (
     <div className="min-h-screen flex flex-col bg-brand-bg pt-24 text-brand-textMain animate-slide-up-stagger overflow-x-hidden md:pt-32">
       <div className="flex-grow max-w-3xl mx-auto px-6 text-center w-full">
         <h1 className="font-serif text-5xl mb-4 text-brand-dark">{title}</h1>
@@ -1618,7 +1803,7 @@ export default function App() {
                 </label>
                 {field.type === "textarea" ? (
                   <textarea
-                    rows="3"
+                    rows={3}
                     className="w-full bg-brand-bg border border-brand-border rounded-xl px-4 py-3 focus:outline-none focus:border-brand-accent transition-colors"
                   ></textarea>
                 ) : field.type === "select" ? (
@@ -2028,7 +2213,7 @@ export default function App() {
             <button
               onClick={() => navigate("book")}
               className={`px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg transition-all whitespace-nowrap ${
-                activeView === "book"
+                isReservationOpen
                   ? "bg-brand-accent text-white shadow-brand-accent/30"
                   : "bg-white text-brand-dark hover:bg-gray-200"
               }`}
@@ -2053,6 +2238,12 @@ export default function App() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `,
         }}
+      />
+
+      <ReservationModal
+        isOpen={isReservationOpen}
+        onClose={() => setIsReservationOpen(false)}
+        lang={language}
       />
     </div>
   );
