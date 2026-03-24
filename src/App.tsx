@@ -44,6 +44,8 @@ import {
   Sun,
   Star,
   ArrowRight,
+  Loader2,
+  Check,
 } from "lucide-react";
 
 // --- CONFIGURARE TAILWIND ---
@@ -1201,6 +1203,7 @@ const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
   const [selectedDate, setSelectedDate] = useState(1);
   const [selectedTime, setSelectedTime] = useState("19:00");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
 
   const today = new Date();
   const days = Array.from({ length: 7 }).map((_, i) => {
@@ -1225,6 +1228,60 @@ const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
       document.body.style.overflow = "auto";
     }
   }, [isOpen]);
+
+  const playSuccessSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const playTone = (freq: number, startTime: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + dur);
+      };
+      const now = ctx.currentTime;
+      // Apple-Pay like double chime
+      playTone(1200, now, 0.15);
+      playTone(1600, now + 0.12, 0.3);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleConfirm = async () => {
+    setStatus("loading");
+    try {
+      // Simulăm webhook-ul către un API
+      await fetch("https://jsonplaceholder.typicode.com/posts", {
+        method: "POST",
+        body: JSON.stringify({ partySize, selectedDate, selectedTime, specialRequests }),
+        headers: { "Content-type": "application/json" },
+      });
+
+      // Delay artificial pentru experiență (1.2 secunde)
+      await new Promise((r) => setTimeout(r, 1200));
+      
+      setStatus("success");
+      playSuccessSound();
+
+      // Resetăm și închidem după confirmare
+      setTimeout(() => {
+        onClose();
+        setTimeout(() => setStatus("idle"), 400); // reset după ce animația de închidere se termină
+      }, 2500);
+    } catch (error) {
+      setStatus("idle");
+      alert(t(lang, "A apărut o eroare.", "An error occurred."));
+    }
+  };
 
   return (
     <div className={`fixed inset-0 z-[200] ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
@@ -1251,105 +1308,131 @@ const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6 pb-32 no-scrollbar">
-          {/* Party Size */}
-          <section className="mb-10">
-            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
-              <Users size={18} />
-              {t(lang, "Persoane", "Party Size")}
-            </h2>
-            <div className="flex justify-between items-center gap-2">
-              {partyOptions.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setPartySize(size)}
-                  className={`w-14 h-14 rounded-full border text-lg flex items-center justify-center transition-all ${
-                    partySize === size
-                      ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-semibold shadow-glow ring-1 ring-brand-accent/20"
-                      : "border-gray-700/50 text-gray-200 font-medium hover:bg-white/5"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+          {/* Apple Pay Style Success Overlay */}
+          <div className={`absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#1A1817] transition-all duration-500 ${status === 'success' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'}`}>
+            <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pop-in">
+                <Check size={36} strokeWidth={3} className="text-white" />
+              </div>
             </div>
-          </section>
+            <h2 className="text-2xl font-serif text-white mb-2">{t(lang, "Rezervare Confirmată", "Booking Confirmed")}</h2>
+            <p className="text-gray-400">{t(lang, "Te așteptăm cu drag!", "We look forward to seeing you!")}</p>
+          </div>
 
-          {/* Date Selection */}
-          <section className="mb-10">
-            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
-              <CalendarCheck size={18} />
-              {t(lang, "Data", "Date")}
-            </h2>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
-              {days.map((day) => (
-                <button
-                  key={day.id}
-                  onClick={() => setSelectedDate(day.id)}
-                  className={`flex flex-col items-center justify-center min-w-[72px] py-3 rounded-xl border transition-all ${
-                    selectedDate === day.id
-                      ? "border-brand-accent bg-brand-accent/10 shadow-glow ring-1 ring-brand-accent/20"
-                      : "border-gray-700/50 bg-[#121212]/50 hover:bg-white/5"
-                  }`}
-                >
-                  <span className={`text-xs mb-1 ${selectedDate === day.id ? "text-brand-accent font-medium" : "text-gray-400"}`}>{day.label}</span>
-                  <span className={`text-xl ${selectedDate === day.id ? "font-bold text-brand-accent" : "font-semibold text-white"}`}>{day.date}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Time Selection */}
-          <section className="mb-10">
-            <div className="flex justify-between items-end mb-4">
-              <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium flex items-center gap-2">
-                <Clock size={18} />
-                {t(lang, "Ora", "Time")}
+          <div className={`transition-opacity duration-300 ${status === 'success' ? 'opacity-0' : 'opacity-100'}`}>
+            {/* Party Size */}
+            <section className="mb-10">
+              <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
+                <Users size={18} />
+                {t(lang, "Persoane", "Party Size")}
               </h2>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {timeOptions.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => setSelectedTime(time)}
-                  className={`py-3 rounded-lg border text-sm transition-all ${
-                    selectedTime === time
-                      ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-bold shadow-glow ring-1 ring-brand-accent/20"
-                      : "border-gray-700/50 bg-[#121212]/50 text-gray-200 font-medium hover:border-gray-500"
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
-            </div>
-          </section>
+              <div className="flex justify-between items-center gap-2">
+                {partyOptions.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setPartySize(size)}
+                    className={`w-14 h-14 rounded-full border text-lg flex items-center justify-center transition-all ${
+                      partySize === size
+                        ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-semibold shadow-glow ring-1 ring-brand-accent/20"
+                        : "border-gray-700/50 text-gray-200 font-medium hover:bg-white/5"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </section>
 
-          {/* Special Requests */}
-          <section className="mb-6">
-            <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-2 flex items-center gap-2">
-              <Utensils size={18} />
-              {t(lang, "Cerințe Speciale", "Special Requests")}
-            </h2>
-            <div className="relative mt-2">
-              <input
-                id="requests"
-                type="text"
-                value={specialRequests}
-                onChange={(e) => setSpecialRequests(e.target.value)}
-                placeholder={t(lang, "Restricții alimentare, aniversări...", "Dietary restrictions, celebrations...")}
-                className="block w-full border-0 border-b border-gray-700 bg-transparent py-3 px-0 text-white focus:border-brand-accent focus:ring-0 sm:text-sm placeholder:text-gray-500 transition-colors"
-              />
-            </div>
-          </section>
+            {/* Date Selection */}
+            <section className="mb-10">
+              <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-4 flex items-center gap-2">
+                <CalendarCheck size={18} />
+                {t(lang, "Data", "Date")}
+              </h2>
+              <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
+                {days.map((day) => (
+                  <button
+                    key={day.id}
+                    onClick={() => setSelectedDate(day.id)}
+                    className={`flex flex-col items-center justify-center min-w-[72px] py-3 rounded-xl border transition-all ${
+                      selectedDate === day.id
+                        ? "border-brand-accent bg-brand-accent/10 shadow-glow ring-1 ring-brand-accent/20"
+                        : "border-gray-700/50 bg-[#121212]/50 hover:bg-white/5"
+                    }`}
+                  >
+                    <span className={`text-xs mb-1 ${selectedDate === day.id ? "text-brand-accent font-medium" : "text-gray-400"}`}>{day.label}</span>
+                    <span className={`text-xl ${selectedDate === day.id ? "font-bold text-brand-accent" : "font-semibold text-white"}`}>{day.date}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Time Selection */}
+            <section className="mb-10">
+              <div className="flex justify-between items-end mb-4">
+                <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium flex items-center gap-2">
+                  <Clock size={18} />
+                  {t(lang, "Ora", "Time")}
+                </h2>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {timeOptions.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => setSelectedTime(time)}
+                    className={`py-3 rounded-lg border text-sm transition-all ${
+                      selectedTime === time
+                        ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-bold shadow-glow ring-1 ring-brand-accent/20"
+                        : "border-gray-700/50 bg-[#121212]/50 text-gray-200 font-medium hover:border-gray-500"
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Special Requests */}
+            <section className="mb-6">
+              <h2 className="text-sm uppercase tracking-wider text-gray-400 font-medium mb-2 flex items-center gap-2">
+                <Utensils size={18} />
+                {t(lang, "Cerințe Speciale", "Special Requests")}
+              </h2>
+              <div className="relative mt-2">
+                <input
+                  id="requests"
+                  type="text"
+                  value={specialRequests}
+                  onChange={(e) => setSpecialRequests(e.target.value)}
+                  placeholder={t(lang, "Restricții alimentare, aniversări...", "Dietary restrictions, celebrations...")}
+                  className="block w-full border-0 border-b border-gray-700 bg-transparent py-3 px-0 text-white focus:border-brand-accent focus:ring-0 sm:text-sm placeholder:text-gray-500 transition-colors"
+                />
+              </div>
+            </section>
+          </div>
         </div>
 
         {/* Fixed Bottom Action */}
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#1A1817] via-[#1A1817] to-transparent pt-12 pointer-events-none">
           <button
-            onClick={onClose}
-            className="pointer-events-auto w-full h-[56px] rounded-full bg-brand-accent text-white font-semibold text-base shadow-glow flex items-center justify-center gap-2 hover:bg-brand-accentHover transition-all active:scale-[0.98]"
+            onClick={handleConfirm}
+            disabled={status !== "idle"}
+            className={`pointer-events-auto w-full h-[56px] rounded-full text-white font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] ${
+              status === "success" 
+                ? "bg-green-500 shadow-[0_8px_32px_rgba(34,197,94,0.3)]" 
+                : "bg-brand-accent shadow-glow hover:bg-brand-accentHover"
+            }`}
           >
-            {t(lang, "Confirmă Rezervarea", "Confirm Booking")}
-            <ArrowRight size={20} />
+            {status === "loading" ? (
+              <Loader2 size={24} className="animate-spin" />
+            ) : status === "success" ? (
+              <Check size={24} className="animate-pop-in" />
+            ) : (
+              <>
+                {t(lang, "Confirmă Rezervarea", "Confirm Booking")}
+                <ArrowRight size={20} />
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -1358,14 +1441,26 @@ const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
 };
 
 // --- COMPONENTA FILTRE DIETETICE (Modern Minimalist) ---
-const DietaryFilterModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: string }) => {
-  const [filters, setFilters] = useState({
-    vegetarian: false,
-    vegan: false,
-    gf: false,
-    df: false,
-    nut: false,
-  });
+const DietaryFilterModal = ({
+  isOpen,
+  onClose,
+  lang,
+  currentFilters,
+  onApplyFilters,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  lang: string;
+  currentFilters: any;
+  onApplyFilters: (f: any) => void;
+}) => {
+  const [localFilters, setLocalFilters] = useState(currentFilters);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalFilters(currentFilters);
+    }
+  }, [currentFilters, isOpen]);
 
   const toggleOptions = [
     { id: "vegetarian", labelEn: "Vegetarian", labelRo: "Vegetarian" },
@@ -1410,8 +1505,8 @@ const DietaryFilterModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClos
                   id={`toggle-${opt.id}`}
                   type="checkbox"
                   className="peer absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 opacity-0"
-                  checked={filters[opt.id as keyof typeof filters]}
-                  onChange={(e) => setFilters({ ...filters, [opt.id]: e.target.checked })}
+                  checked={localFilters[opt.id as keyof typeof localFilters]}
+                  onChange={(e) => setLocalFilters({ ...localFilters, [opt.id]: e.target.checked })}
                 />
                 <div className="block overflow-hidden h-[32px] w-[56px] rounded-full bg-[#1A1A1A] cursor-pointer peer-checked:bg-brand-accent transition-colors duration-200">
                   <div className="absolute top-[2px] left-[2px] w-[28px] h-[28px] bg-[#A3A3A3] rounded-full transition-transform duration-200 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] peer-checked:translate-x-[24px] peer-checked:bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]"></div>
@@ -1424,7 +1519,10 @@ const DietaryFilterModal = ({ isOpen, onClose, lang }: { isOpen: boolean; onClos
 
       {/* Sticky Bottom CTA */}
       <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 backdrop-blur-[24px] bg-[#141414]/75 border-t border-white/5 z-50">
-        <button onClick={onClose} className="w-full h-[64px] bg-brand-accent text-white text-xl font-serif rounded-full flex items-center justify-center tracking-wide active:scale-[0.98] transition-transform shadow-lg hover:bg-brand-accentHover">
+        <button 
+          onClick={() => { onApplyFilters(localFilters); onClose(); }} 
+          className="w-full h-[64px] bg-brand-accent text-white text-xl font-serif rounded-full flex items-center justify-center tracking-wide active:scale-[0.98] transition-transform shadow-lg hover:bg-brand-accentHover"
+        >
           {t(lang, "Aplică Filtrele", "Apply Filters")}
         </button>
       </div>
@@ -1442,6 +1540,13 @@ export default function App() {
   const [language, setLanguage] = useState("RO");
   const [activeMenuCategory, setActiveMenuCategory] = useState("pizza");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [dietaryFilters, setDietaryFilters] = useState({
+    vegetarian: false,
+    vegan: false,
+    gf: false,
+    df: false,
+    nut: false,
+  });
 
   const menuRef = useRef(null);
   const scrollLocked = useRef(false);
@@ -1830,18 +1935,55 @@ export default function App() {
             )}
           </p>
           
-          <button
-            onClick={() => setIsDietaryModalOpen(true)}
-            className="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-sm text-white font-medium tracking-wide shadow-sm"
-          >
-            <Utensils size={18} />
-            {t(language, "Filtre Dietetice", "Dietary Needs")}
-          </button>
+          {(() => {
+            const activeFiltersCount = Object.values(dietaryFilters).filter(Boolean).length;
+            return (
+              <button
+                onClick={() => setIsDietaryModalOpen(true)}
+                className={`inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-full border transition-colors text-sm font-medium tracking-wide shadow-sm ${
+                  activeFiltersCount > 0
+                    ? "border-brand-accent/50 bg-brand-accent/20 text-brand-accent"
+                    : "border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                }`}
+              >
+                <Utensils size={18} />
+                {t(language, "Filtre Dietetice", "Dietary Needs")}
+                {activeFiltersCount > 0 && (
+                  <span className="ml-1 flex items-center justify-center bg-brand-accent text-white rounded-full w-5 h-5 text-[10px] font-bold">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
+            );
+          })()}
         </div>
 
         {currentCategories.map((category) => {
           const items = currentMenuData[category.id];
           if (!items) return null;
+
+          const filteredItems = items.filter((item: any) => {
+            const textToSearch = `${item.name} ${item.desc} ${item.nutrition?.allergens || ""}`.toLowerCase();
+
+            if (dietaryFilters.nut && ["nuci", "fistic", "alune", "arahide", "susan", "nut", "pistachio", "sesame", "peanut"].some(k => textToSearch.includes(k))) return false;
+            if (dietaryFilters.gf && ["gluten", "făină", "lipie", "baghetă", "crutoane", "paste", "spaghete", "paccheri", "tagliatelle", "lasagna", "penne", "rigatoni", "focaccia", "blat", "pane", "pișcoturi", "bere", "flour", "pita", "baguette", "crouton", "pasta", "spaghetti", "dough", "bread", "ladyfinger", "beer"].some(k => textToSearch.includes(k))) return false;
+            if (dietaryFilters.df && ["lactoză", "lactose", "brânză", "cheese", "unt", "butter", "smântână", "cream", "parmezan", "parmesan", "mozzarella", "gorgonzola", "fior di latte", "mascarpone", "iaurt", "yogurt", "cedar", "cheddar", "brie", "telemea", "capră", "goat"].some(k => textToSearch.includes(k))) return false;
+
+            const meatKeywords = ["salam", "salami", "prosciutto", "carne", "meat", "pui", "chicken", "pește", "fish", "ton", "tuna", "somon", "salmon", "fructe de mare", "seafood", "bacon", "cârnați", "sausage", "șuncă", "ham", "vită", "beef", "berbecuț", "oaie", "lamb", "sheep", "burger", "angus", "guanciale", "pancetta", "chorizo", "dorada", "păstrăv", "mici", "ceafă", "pork neck", "cotlet", "chop", "antricot", "ribeye", "mortadella"];
+            const hasMeat = meatKeywords.some(k => textToSearch.includes(k));
+
+            if (dietaryFilters.vegetarian && hasMeat) return false;
+
+            if (dietaryFilters.vegan) {
+              if (hasMeat) return false;
+              if (["lactoză", "lactose", "brânză", "cheese", "unt", "butter", "smântână", "cream", "parmezan", "parmesan", "mozzarella", "gorgonzola", "fior di latte", "mascarpone", "iaurt", "yogurt", "cedar", "cheddar", "brie", "telemea", "capră", "goat", "ouă", "ou", "egg", "miere", "honey"].some(k => textToSearch.includes(k))) return false;
+            }
+
+            return true;
+          });
+
+          if (filteredItems.length === 0) return null;
+
           return (
             <div
               key={category.id}
@@ -1853,9 +1995,9 @@ export default function App() {
               </h2>
 
               <div>
-                {items.map((item, idx) => (
+                {filteredItems.map((item: any, idx: number) => (
                   <MenuItemCard
-                    key={idx}
+                    key={item.name}
                     item={item}
                     index={idx}
                     lang={language}
@@ -2317,6 +2459,8 @@ export default function App() {
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes slideUpStagger { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-slide-up-stagger { opacity: 0; animation: slideUpStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         body { background: #121212; -webkit-font-smoothing: antialiased; margin: 0; padding: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -2334,6 +2478,8 @@ export default function App() {
         isOpen={isDietaryModalOpen}
         onClose={() => setIsDietaryModalOpen(false)}
         lang={language}
+        currentFilters={dietaryFilters}
+        onApplyFilters={setDietaryFilters}
       />
     </div>
   );
