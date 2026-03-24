@@ -1744,7 +1744,6 @@ export default function App() {
   // --- VIEWS ---
 
   const renderHome = () => (
-    <div className="relative w-full h-full overflow-hidden bg-brand-dark">
     <div className="relative flex-1 w-full h-full overflow-hidden bg-brand-dark">
       {slides.map((slide, idx) => {
         const isActive = currentSlide === idx;
