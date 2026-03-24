@@ -1485,7 +1485,7 @@ const DietaryFilterModal = ({
 
       {/* Main Content: Filter List */}
       <main className="flex-1 overflow-y-auto px-6 pb-32 pt-4 no-scrollbar">
-        <p className="text-[#A3A3A3] text-base md:text-lg mb-8 font-serif leading-relaxed">
+        <p className="text-[#A3A3A3] text-sm md:text-base font-light mb-8 leading-relaxed">
           {t(
             lang,
             "Bifați opțiunile de mai jos pentru a filtra meniul. Preparatele care conțin ingrediente neselectate vor fi ascunse.",
@@ -1496,21 +1496,20 @@ const DietaryFilterModal = ({
         <div className="flex flex-col">
           {toggleOptions.map((opt) => (
             <div key={opt.id} className="flex items-center justify-between h-[72px] border-b border-white/10 group">
-              <label htmlFor={`toggle-${opt.id}`} className={`text-xl font-serif flex-1 cursor-pointer flex items-center gap-3 transition-colors ${opt.isWarning ? "text-brand-accent hover:text-brand-accentHover" : "text-white hover:text-gray-200"}`}>
+              <label htmlFor={`toggle-${opt.id}`} className={`text-lg md:text-xl font-bold tracking-wide flex-1 cursor-pointer flex items-center gap-3 transition-colors ${opt.isWarning ? "text-brand-accent hover:text-brand-accentHover" : "text-white hover:text-gray-200"}`}>
                 {opt.isWarning && <Info size={22} />}
                 {t(lang, opt.labelRo, opt.labelEn)}
               </label>
-              <div className="relative inline-block w-[56px] align-middle select-none shrink-0 h-[32px]">
+              <div className="relative inline-block w-[56px] h-[32px] align-middle select-none shrink-0">
                 <input
                   id={`toggle-${opt.id}`}
                   type="checkbox"
-                  className="peer absolute inset-0 w-full h-full cursor-pointer z-10 opacity-0 m-0 p-0"
+                  className="peer absolute inset-0 w-full h-full cursor-pointer z-20 opacity-0 m-0 p-0"
                   checked={localFilters[opt.id as keyof typeof localFilters]}
                   onChange={(e) => setLocalFilters({ ...localFilters, [opt.id]: e.target.checked })}
                 />
-                <div className="block overflow-hidden h-[32px] w-[56px] rounded-full bg-[#1A1A1A] cursor-pointer peer-checked:bg-brand-accent transition-colors duration-200">
-                  <div className="absolute top-[2px] left-[2px] w-[28px] h-[28px] bg-[#A3A3A3] rounded-full transition-transform duration-200 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] peer-checked:translate-x-[24px] peer-checked:bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]"></div>
-                </div>
+                <div className="absolute inset-0 rounded-full bg-[#1A1A1A] peer-checked:bg-brand-accent transition-colors duration-300 pointer-events-none"></div>
+                <div className="absolute top-[2px] left-[2px] w-[28px] h-[28px] bg-[#A3A3A3] rounded-full transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] peer-checked:translate-x-[24px] peer-checked:bg-white shadow-sm pointer-events-none"></div>
               </div>
             </div>
           ))}
@@ -1521,7 +1520,7 @@ const DietaryFilterModal = ({
       <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 backdrop-blur-[24px] bg-[#141414]/75 border-t border-white/5 z-50">
         <button 
           onClick={() => { onApplyFilters(localFilters); onClose(); }} 
-          className="w-full h-[64px] bg-brand-accent text-white text-xl font-serif rounded-full flex items-center justify-center tracking-wide active:scale-[0.98] transition-transform shadow-lg hover:bg-brand-accentHover"
+          className="w-full h-[64px] bg-brand-accent text-white text-sm font-bold uppercase tracking-widest rounded-full flex items-center justify-center active:scale-[0.98] transition-all shadow-lg hover:bg-brand-accentHover"
         >
           {t(lang, "Aplică Filtrele", "Apply Filters")}
         </button>
@@ -1746,6 +1745,7 @@ export default function App() {
 
   const renderHome = () => (
     <div className="relative w-full h-full overflow-hidden bg-brand-dark">
+    <div className="relative flex-1 w-full h-full overflow-hidden bg-brand-dark">
       {slides.map((slide, idx) => {
         const isActive = currentSlide === idx;
         const isPast = currentSlide > idx;
@@ -2390,6 +2390,7 @@ export default function App() {
       <main
         className={`w-full ${
           activeView === "home" ? "h-[100dvh]" : "min-h-[100dvh]"
+          activeView === "home" ? "h-screen h-[100dvh]" : "min-h-screen min-h-[100dvh]"
         } bg-brand-dark flex flex-col`}
       >
         {activeView === "home" && renderHome()}
