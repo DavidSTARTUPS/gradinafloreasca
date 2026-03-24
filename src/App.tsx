@@ -2389,7 +2389,6 @@ export default function App() {
 
       <main
         className={`w-full ${
-          activeView === "home" ? "h-[100dvh]" : "min-h-[100dvh]"
           activeView === "home" ? "h-screen h-[100dvh]" : "min-h-screen min-h-[100dvh]"
         } bg-brand-dark flex flex-col`}
       >
