@@ -126,35 +126,35 @@ export default function App() {
       type: "reviews",
       reviews: [
         {
-          name: "Alin Gheorghe",
+          name: "Costi Baicu",
           text: t(
             language,
-            "Mancare excelenta... una dintre cele mai bune pizza Quattro Formaggi din Bucuresti! O oaza de liniste cu vedere minunata la parc.",
-            "Great food…one of the best Quatro Formagi Pizza in Bucharest! Peace and quietful place with wonderful views to the park."
+            "Am fost acolo in august-septembrie, atat pentru piscina cat si pentru restaurant. Mancarea a fost foarte buna, iar atmosfera in sine era foarte linistita.",
+            "I visited in August-September, both for the pool and the restaurant. The food was excellent, and the atmosphere itself was incredibly peaceful."
           ),
         },
         {
-          name: "Alina Pascale",
+          name: "Marius Eana",
           text: t(
             language,
-            "O sangria minunata, dar laude speciale pentru focaccia, a carei reteta am inteles ca a fost indelung studiata de proprietari. Ne-a impresionat efortul lor.",
-            "A wonderful sangria, too. A special praise for the focaccia, whose recipe was thoroughly researched by the owners."
+            "Am comandat o pizza Margherita tare bună, la fel si salata cu halloumi si semințe. Limonada de ghimbir a fost exact cum trebuie. Locația este tare faină, ideală pentru a sta la o terasă înconjurată de verde.",
+            "I ordered a Margherita pizza which was very good, as was the halloumi salad. The ginger lemonade was spot on. A wonderful location, ideal for relaxing on a terrace surrounded by greenery."
           ),
         },
         {
-          name: "Vlad Mototolea",
+          name: "Daniela Gabriela Deleanu",
           text: t(
             language,
-            "Locatia este situata fix langa parc si are o terasa frumoasa. Am mancat lasagna si a fost grozava 👍. Servire rapida si amicala.",
-            "The place is situated right by the park and has a medium-sized terrace . I had the lasagna and it was great 👍. Fast service."
+            "O experiență absolut minunată în ziua nunții noastre. Totul a fost perfect organizat, personalul excelent, iar mâncarea delicioasă. Un loc ideal pentru evenimente intime, plin de verdeață.",
+            "An absolutely wonderful experience on our wedding day. Everything was perfectly organized, the staff was excellent, and the food delicious. An ideal venue for intimate events surrounded by greenery."
           ),
         },
         {
-          name: "Cecil Williams",
+          name: "Alexandra Tulai",
           text: t(
             language,
-            "Locul perfect pentru a opri dupa o plimbare in parc. Personalul prietenos, iar Gradina Floreasca Sandwich a fost absolut excelent! Recomand.",
-            "Perfect place to stop at after walking through the park next to it. The staff was friendly and the Gradina Floreasca Sandwich was excellent!"
+            "Experiența mea a fost una fără cusur. Am ales pavilionul pentru o nuntă restrânsă și liniștită. Un spațiu plăcut, personal atent, mâncare delicioasă și lipsă totală de griji.",
+            "My experience was flawless. We chose the pavilion for a cozy, intimate wedding. Beautiful space, attentive staff, delicious food, and a completely stress-free experience."
           ),
         },
       ],
