@@ -108,7 +108,7 @@ export default function App() {
   const slides = [
     {
       title: (lang: string) => t(lang, "Gradina Floreasca", "Gradina Floreasca"),
-      subtitle: (lang: string) => t(lang, "RESTAURANT & PIZZA", "RESTAURANT & PIZZA"),
+      subtitle: (lang: string) => t(lang, "RESTAURANT & EVENTS", "RESTAURANT & EVENTS"),
       desc: (lang: string) =>
         t(
           lang,
@@ -121,7 +121,7 @@ export default function App() {
     {
       title: (lang: string) => t(lang, "PARERILE OASPETILOR", "GUEST REVIEWS"),
       subtitle: (lang: string) =>
-        t(lang, "4.5/5 DIN 345+ RECENZII", "4.5/5 FROM 345+ REVIEWS"),
+        t(lang, "4.5/5 DIN 2700+ RECENZII", "4.5/5 FROM 2700+ REVIEWS"),
       image: "download (4).png",
       type: "reviews",
       reviews: [
@@ -142,6 +142,14 @@ export default function App() {
           ),
         },
         {
+          name: "iulius caesar",
+          text: t(
+            language,
+            "Locație excelentă. Servicii de calitate cu cei mai atenți ospătari. La evenimentul nostru privat mâncarea a fost foarte bună, iar barmanii au făcut cele mai bune cocktail-uri. Recomand cu drag!",
+            "Excellent location. Premium service with highly attentive staff. For our private event, the food was delicious and the bartenders crafted amazing cocktails. Highly recommend!"
+          ),
+        },
+        {
           name: "Daniela Gabriela Deleanu",
           text: t(
             language,
@@ -149,14 +157,8 @@ export default function App() {
             "An absolutely wonderful experience on our wedding day. Everything was perfectly organized, the staff was excellent, and the food delicious. An ideal venue for intimate events surrounded by greenery."
           ),
         },
-        {
-          name: "Alexandra Tulai",
-          text: t(
-            language,
-            "Experiența mea a fost una fără cusur. Am ales pavilionul pentru o nuntă restrânsă și liniștită. Un spațiu plăcut, personal atent, mâncare delicioasă și lipsă totală de griji.",
-            "My experience was flawless. We chose the pavilion for a cozy, intimate wedding. Beautiful space, attentive staff, delicious food, and a completely stress-free experience."
-          ),
-        },
+
+
       ],
     },
     {
