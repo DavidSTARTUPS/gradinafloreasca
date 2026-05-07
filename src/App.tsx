@@ -314,7 +314,7 @@ export default function App() {
               src={slide.image}
               className={`absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-[20s] ease-linear ${isActive ? "scale-110" : "scale-100"
                 }`}
-              alt="Refresh Slide"
+              alt="Slide Grădina Floreasca"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/70"></div>
 
