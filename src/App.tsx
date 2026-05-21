@@ -2268,7 +2268,7 @@ export default function App() {
               <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
                 <img
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1200&q=80"
+                  src="/piscina.jpg"
                   alt="Crystal water close-up"
                 />
               </div>
@@ -2368,10 +2368,10 @@ export default function App() {
             </div>
 
             {/* Bento Card 4: Atmosphere Quote Image */}
-            <div className="lg:col-span-7 rounded-[24px] overflow-hidden shadow-xl shadow-[#005ab7]/5 relative min-h-[350px] lg:min-h-full group border border-white">
+            <div className="lg:col-span-7 rounded-[24px] overflow-hidden shadow-xl shadow-[#005ab7]/5 relative min-h-[350px] lg:h-[500px] group border border-white">
               <img
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                src="https://images.unsplash.com/photo-1507504038482-7621c51873f6?auto=format&fit=crop&w=1200&q=80"
+                src="/piscina-floreasca-2.jpg"
                 alt="Floreasca premium lounge terrace"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8 md:p-12">
