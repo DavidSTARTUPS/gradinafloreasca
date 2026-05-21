@@ -183,7 +183,7 @@ export const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; o
     <div className={`fixed inset-0 z-[200] ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
       {/* Overlay */}
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300`}
+        className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         style={{ opacity: overlayOpacity }}
         onClick={onClose}
       ></div>
@@ -195,15 +195,12 @@ export const ReservationModal = ({ isOpen, onClose, lang }: { isOpen: boolean; o
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className={`fixed z-[210] flex flex-col bg-[#1A1817] shadow-float overflow-hidden
-          /* Mobile: Bottom Sheet */
-          inset-x-0 bottom-0 h-auto max-h-[92vh] rounded-t-[32px]
-          
-          /* Desktop: Centered Modal */
+          inset-x-0 bottom-0 h-auto max-h-[70vh] rounded-t-[32px]
           sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:w-[92%] sm:max-w-[480px] sm:h-[85vh] sm:max-h-[750px] sm:rounded-[32px]
-          ${isOpen ? "sm:-translate-y-1/2 sm:scale-100" : "sm:translate-y-0 sm:scale-95 sm:opacity-0 sm:pointer-events-none"}`}
+          ${isOpen ? "translate-y-0 opacity-100 sm:-translate-y-1/2 sm:scale-100" : "translate-y-full opacity-0 pointer-events-none sm:translate-y-0 sm:scale-95 sm:opacity-0 sm:pointer-events-none"}`}
         style={{
-          transform: window.innerWidth < 640
-            ? `translateY(${isOpen ? dragY : window.innerHeight}px)`
+          transform: window.innerWidth < 640 && isOpen
+            ? `translateY(${dragY}px)`
             : undefined,
           transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.32,0.72,0,1), opacity 0.3s, scale 0.3s',
         }}

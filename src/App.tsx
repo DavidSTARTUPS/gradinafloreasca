@@ -94,6 +94,14 @@ export default function App() {
   const [activeEventFilter, setActiveEventFilter] = useState("all");
   const [newsletterPopup, setNewsletterPopup] = useState<{ isOpen: boolean; type: "pool" | "salons" | "events" | null; email: string; isSubmitted: boolean }>({ isOpen: false, type: null, email: "", isSubmitted: false });
 
+  // --- STATE-URI PENTRU RSVP EVENIMENTE ---
+  const [isRsvpOpen, setIsRsvpOpen] = useState(false);
+  const [rsvpName, setRsvpName] = useState("");
+  const [rsvpPhone, setRsvpPhone] = useState("");
+  const [rsvpEvent, setRsvpEvent] = useState("film");
+  const [rsvpGuests, setRsvpGuests] = useState("2");
+  const [rsvpStatus, setRsvpStatus] = useState<"idle" | "loading" | "success">("idle");
+
   const playSuccessSound = () => {
     try {
       const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -803,7 +811,7 @@ export default function App() {
         slots: t(language, "Rezervare masă recomandată", "Table reservation recommended"),
         badge: t(language, "Hot", "Hot"),
         tag: "party",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdsFI_f3zuTdgCCLpsM04Jz9CMDPa4iSDAZLdrElbrgmkrXyW7SMSFeHFk40P_sLJ2K997RWzNM0MIM69mFmorLdHHLFg1XA0DIl_B9_Ht9KEu7VFe0X68sokYgd6YfDvJsIEAIx7Lkg24dMWm9JmaSqfFy8Uy1lRxVifpC_P9C3PRPmUUghVwsgJq5Xo8Qar0u74giFEjutevlzd2N_wpZiKK1xCUQd3CsJzIxPOvEi8gj9l_qd9AvHz3n0x037_i1SfIDBxPrFE"
+        image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80"
       },
       {
         id: "yoga",
@@ -826,23 +834,23 @@ export default function App() {
         slots: t(language, "Doar 6 locuri rămase", "Only 6 spots left"),
         badge: t(language, "Wellness", "Wellness"),
         tag: "wellness",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDL5Htx_TMBagRvUmZUet-4_RyFI5pZUtT0T_dPRJMt-IoZ46bFujf5FIpbr0v4uRIMQvdLpUzU7_PO1OHrynYh7Xpa2d6JS9NtYfb3og33YpxekG86emVqQWrgF2VvkaV9-h0LGQ7Ax2mRFn6jLAH0-8avbfH7G9dY_EYCp5o5c0gVh9hyl2A8ItT9cqOPiljfoYpKt0jT5K8oDKpjhJSr0psISeARSdFNxQ4uaaPoXIbJGIyMlJ4p6anXZ7QJQQlg_35pBjjrg10"
+        image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80"
       }
     ];
 
-    const filteredEvents = activeEventFilter === "all" 
-      ? eventsData 
+    const filteredEvents = activeEventFilter === "all"
+      ? eventsData
       : eventsData.filter(e => e.tag === activeEventFilter);
 
     return (
-      <div className="min-h-screen bg-brand-dark text-white antialiased overflow-x-hidden pt-24 md:pt-32 animate-fade-in font-sans">
+      <div className="min-h-screen bg-brand-dark text-white antialiased overflow-x-hidden animate-fade-in font-sans">
         {/* Cinematic Premium Hero */}
-        <header className="relative w-full h-[65vh] min-h-[500px] flex flex-col justify-center px-6 md:px-20 overflow-hidden border-b border-white/5">
+        <header className="relative w-full h-[65vh] min-h-[500px] flex flex-col justify-center px-6 md:px-20 pt-24 md:pt-32 overflow-hidden border-b border-white/5">
           <div className="absolute inset-0 z-0">
             <img
               alt="Cinematic Hero Image"
               className="w-full h-full object-cover opacity-60 scale-100"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmtYbE3A6z_LYBm3tpG1GXf_CTNpWbwowm4oMIxAXnoPt8jilfvFQXH2BVMd1oxtuog6HTHl8K8ei9J_6wu68HbpK4jg8tze_ncriNkLtCZxhaWUd4jJtpSYx-gFEZeTQPZ2Va_CWvN16rEoyQMWnEF9EEJw8CNoLL2fdR0leU2IZweEjhNILyJXBJdU1NiIIfiMWNhkDALu5nQL1wJIsJoZEhKVqSHY4AatCIMeg54nT-NCUUQWPZmTc0WHpKGsucjOUXIrQRCq8"
+              src="/film.jpg"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
           </div>
@@ -870,75 +878,110 @@ export default function App() {
           </div>
         </header>
 
-        {/* Promo Highlights Row */}
-        <section className="bg-brand-dark py-12 border-b border-white/5 px-6 md:px-20">
-          <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-brand-accent/30 transition-all duration-300">
-              <div className="text-brand-accent font-serif text-2xl mb-1">★</div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-1">{t(language, "Locație Premium", "Premium Location")}</p>
-              <span className="text-[10px] text-gray-500">{t(language, "În inima parcului", "In the heart of the park")}</span>
+        {/* ══════════════════════════════════════════════════════════════ */}
+        {/* Experiențe Curate — Bento Grid                              */}
+        {/* ══════════════════════════════════════════════════════════════ */}
+        <section className="py-12 md:py-24 px-6 md:px-20 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="font-serif text-4xl md:text-[48px] text-white leading-tight mb-4 font-normal">
+                {t(language, "Experiențe", "Curated")}{" "}
+                <span className="italic text-brand-accent">{t(language, "Curate", "Experiences")}</span>
+              </h2>
+              <span className="w-24 h-px bg-brand-accent mx-auto block"></span>
             </div>
-            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-brand-accent/30 transition-all duration-300">
-              <div className="text-brand-accent font-serif text-2xl mb-1">🥂</div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-1">{t(language, "Welcome Drink", "Welcome Drink")}</p>
-              <span className="text-[10px] text-gray-500">{t(language, "Prosecco inclus", "Prosecco included")}</span>
-            </div>
-            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-brand-accent/30 transition-all duration-300">
-              <div className="text-brand-accent font-serif text-2xl mb-1">🍽</div>
-              <p className="text-xs uppercase tracking-widest text-gray-400 font-bold mb-1">{t(language, "Meniu Dedicat", "Dedicated Menu")}</p>
-              <span className="text-[10px] text-gray-500">{t(language, "Preparate fine-dining", "Fine-dining options")}</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" style={{ gridAutoRows: "300px" }}>
+              {/* Cinema Image — Large (2 cols, 2 rows) */}
+              <div className="lg:col-span-2 lg:row-span-2 relative rounded-3xl overflow-hidden group">
+                <img alt={t(language, "Cinema sub Stele", "Cinema under Stars")} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80" src="/cinema-stele.jpg" />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="font-mono text-[12px] bg-brand-accent text-brand-dark px-3 py-1 rounded-full uppercase tracking-widest font-bold">{t(language, "Miercuri, 21:00", "Wednesday, 21:00")}</span>
+                  </div>
+                  <h3 className="font-serif text-3xl md:text-[40px] text-white leading-tight mb-3 font-normal">Cinema <span className="italic text-brand-accent">sub Stele</span></h3>
+                  <p className="font-sans text-sm md:text-base text-gray-300 max-w-lg mb-6 font-light leading-relaxed">
+                    {t(language, "O experiență cinematică absolută în confortul șezlongurilor noastre premium, sub un baldachin de stele și lumini ambientale calde.", "An absolute cinematic experience in the comfort of our premium loungers, under a canopy of stars and warm ambient lights.")}
+                  </p>
+                  <button onClick={() => { setRsvpEvent("film"); setIsRsvpOpen(true); }} className="w-max flex items-center gap-2 text-brand-accent font-sans text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+                    <span>{t(language, "Rezervă Acum", "Book Now")}</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Text Cell 1 — Weekly Summer Events (Large, 2 cols, 1 row) */}
+              <div className="lg:col-span-2 lg:row-span-1 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl flex flex-col justify-center items-start">
+                <div className="w-12 h-12 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent mb-4"><CalendarHeart size={22} /></div>
+                <h3 className="font-serif text-2xl md:text-[28px] text-white mb-2 font-normal">{t(language, "Evenimente", "Weekly Events")}{" "}<span className="italic text-brand-accent">{t(language, "de Vară", "Summer")}</span></h3>
+                <p className="font-sans text-sm md:text-base text-gray-400 font-light leading-relaxed">
+                  {t(language, "Pe parcursul întregii veri, Grădina Floreasca susține un calendar vibrant de evenimente săptămânale. De la proiecții de film sub stele miercurea, la sesiuni DJ la apus în weekend și yoga revigorantă duminica — fiecare săptămână aduce o experiență nouă.", "Throughout the entire summer, Grădina Floreasca hosts a vibrant calendar of weekly events. From movie screenings under the stars on Wednesdays, to sunset DJ sessions on weekends and refreshing yoga on Sundays — each week brings a new experience.")}
+                </p>
+              </div>
+
+              {/* DJ Image — Tall (1 col, 2 rows) */}
+              <div className="lg:col-span-1 lg:row-span-2 relative rounded-3xl overflow-hidden group">
+                <img alt="Sunset DJ Sessions" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80" src={eventsData[1]?.image || ""} />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <span className="font-mono text-[10px] bg-white/20 backdrop-blur-md border border-white/20 text-white px-3 py-1 rounded-full uppercase tracking-widest w-max mb-3">{t(language, "Vin & Sâm", "Fri & Sat")}</span>
+                  <h3 className="font-serif text-xl md:text-[24px] text-white leading-tight mb-4 font-normal">Sunset DJ <span className="italic text-brand-accent">Sessions</span></h3>
+                  <button onClick={() => { setRsvpEvent("dj"); setIsRsvpOpen(true); }} className="w-10 h-10 rounded-full bg-brand-accent text-brand-dark flex items-center justify-center hover:scale-110 transition-transform">
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Yoga Image — Tall (1 col, 2 rows) */}
+              <div className="lg:col-span-1 lg:row-span-2 relative rounded-3xl overflow-hidden group">
+                <img alt="Yoga & Mindfulness" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80" src={eventsData[2]?.image || ""} />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/40 to-transparent"></div>
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <span className="font-mono text-[10px] bg-white/20 backdrop-blur-md border border-white/20 text-white px-3 py-1 rounded-full uppercase tracking-widest w-max mb-3">{t(language, "Dum, 09:00", "Sun, 09:00")}</span>
+                  <h3 className="font-serif text-xl md:text-[24px] text-white leading-tight mb-4 font-normal">Yoga & <span className="italic text-brand-accent">Mindfulness</span></h3>
+                  <button onClick={() => { setRsvpEvent("yoga"); setIsRsvpOpen(true); }} className="w-10 h-10 rounded-full bg-brand-accent text-brand-dark flex items-center justify-center hover:scale-110 transition-transform">
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Text Cell 2 — "O Evadare Revigorantă" (Small, 1 col, 1 row) */}
+              <div className="lg:col-span-1 lg:row-span-1 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl flex flex-col justify-center items-start">
+                <div className="w-10 h-10 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent mb-3"><Sparkles size={18} /></div>
+                <h3 className="font-serif text-lg text-white mb-2 font-normal">
+                  {t(language, "O Evadare", "An Escape")}{" "}
+                  <span className="italic text-brand-accent">{t(language, "Revigorantă", "Refreshing")}</span>
+                </h3>
+                <p className="font-sans text-[12px] text-gray-400 font-light leading-relaxed line-clamp-4">
+                  {t(language, "Grădina Floreasca organizează săptămânal evenimente exclusiviste într-un cadru natural de vis. O evadare revigorantă sub cerul liber.", "Grădina Floreasca organizes weekly exclusive events in a dreamy natural setting. A refreshing escape under the open sky.")}
+                </p>
+              </div>
+
+              {/* Text Cell 3 — "Filme noi în fiecare săptămână" */}
+              <div className="lg:col-span-1 lg:row-span-1 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl flex flex-col justify-center items-start">
+                <div className="w-10 h-10 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent mb-3"><Moon size={18} /></div>
+                <h3 className="font-serif text-lg text-white mb-2 font-normal">{t(language, "Filme noi", "New movies")}{" "}<span className="italic text-brand-accent">{t(language, "săptămânal", "weekly")}</span></h3>
+                <p className="font-sans text-[12px] text-gray-400 font-light leading-relaxed line-clamp-4">
+                  {t(language, "Descoperă selecția noastră curată de capodopere cinematografice, clasice și contemporane.", "Discover our curated selection of cinematic masterpieces, classic and contemporary.")}
+                </p>
+              </div>
             </div>
           </div>
         </section>
-
-        {/* Dynamic Category Filtering Timeline */}
-        <section className="py-12 bg-black/10 px-6 md:px-20 text-center">
-          <div className="max-w-xl mx-auto">
-            <h2 className="font-serif text-2xl md:text-3xl text-white mb-6 font-normal">
-              {t(language, "Programează-ți Evadarea", "Schedule Your Escape")}
+        {/* ══════════════════════════════════════════════════════════════ */}
+        {/* Evenimentele Actuale — Delimiter Section                     */}
+        {/* ══════════════════════════════════════════════════════════════ */}
+        <section className="pt-24 pb-8 px-6 md:px-20 relative border-t border-white/5 bg-black/10">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="font-serif text-3xl md:text-5xl text-white leading-tight mb-4 font-normal">
+              {t(language, "Evenimentele", "Current")}{" "}
+              <span className="italic text-brand-accent">{t(language, "Actuale", "Events")}</span>
             </h2>
-            <div className="inline-flex flex-wrap items-center justify-center p-1.5 bg-white/[0.03] border border-white/10 rounded-full gap-2">
-              <button
-                onClick={() => setActiveEventFilter("all")}
-                className={`px-5 py-2 rounded-full text-[10px] uppercase font-bold tracking-wider transition-all duration-300 ${
-                  activeEventFilter === "all"
-                    ? "bg-brand-accent text-brand-dark shadow-md"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {t(language, "Toate", "All Events")}
-              </button>
-              <button
-                onClick={() => setActiveEventFilter("cinema")}
-                className={`px-5 py-2 rounded-full text-[10px] uppercase font-bold tracking-wider transition-all duration-300 ${
-                  activeEventFilter === "cinema"
-                    ? "bg-brand-accent text-brand-dark shadow-md"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {t(language, "Miercuri • Cinema", "Wednesday • Cinema")}
-              </button>
-              <button
-                onClick={() => setActiveEventFilter("party")}
-                className={`px-5 py-2 rounded-full text-[10px] uppercase font-bold tracking-wider transition-all duration-300 ${
-                  activeEventFilter === "party"
-                    ? "bg-brand-accent text-brand-dark shadow-md"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {t(language, "Weekend • Sunset DJ", "Weekend • DJ Sessions")}
-              </button>
-              <button
-                onClick={() => setActiveEventFilter("wellness")}
-                className={`px-5 py-2 rounded-full text-[10px] uppercase font-bold tracking-wider transition-all duration-300 ${
-                  activeEventFilter === "wellness"
-                    ? "bg-brand-accent text-brand-dark shadow-md"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {t(language, "Duminică • Wellness", "Sunday • Wellness")}
-              </button>
-            </div>
+            <p className="font-sans text-xs md:text-sm text-gray-400 uppercase tracking-widest max-w-md mx-auto font-light">
+              {t(language, "Calendarul complet al experiențelor din această perioadă", "The complete calendar of current experiences")}
+            </p>
+            <span className="w-16 h-[1.5px] bg-brand-accent mx-auto mt-6 block"></span>
           </div>
         </section>
 
@@ -948,14 +991,13 @@ export default function App() {
             {filteredEvents.map((item, idx) => {
               const isEven = idx % 2 === 0;
               return (
-                <div 
+                <div
                   key={item.id}
                   className={`flex flex-col lg:flex-row items-stretch gap-12 lg:gap-20 transition-all duration-500`}
                 >
                   {/* High Quality Unblurred Cover */}
-                  <div className={`w-full lg:w-1/2 relative min-h-[400px] lg:min-h-[550px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group ${
-                    isEven ? "lg:order-1" : "lg:order-2"
-                  }`}>
+                  <div className={`w-full lg:w-1/2 relative min-h-[400px] lg:min-h-[550px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group ${isEven ? "lg:order-1" : "lg:order-2"
+                    }`}>
                     <img
                       alt={item.title}
                       className="absolute inset-0 w-full h-full object-cover transform transition-transform duration-1000 group-hover:scale-105"
@@ -970,9 +1012,8 @@ export default function App() {
                   </div>
 
                   {/* Informational Promo content */}
-                  <div className={`w-full lg:w-1/2 flex flex-col justify-center gap-6 ${
-                    isEven ? "lg:order-2" : "lg:order-1"
-                  }`}>
+                  <div className={`w-full lg:w-1/2 flex flex-col justify-center gap-6 ${isEven ? "lg:order-2" : "lg:order-1"
+                    }`}>
                     <div className="flex items-center gap-3">
                       <span className="w-8 h-[1.5px] bg-brand-accent"></span>
                       <span className="font-sans text-xs text-brand-accent uppercase tracking-widest font-bold">
@@ -1010,7 +1051,12 @@ export default function App() {
                     </div>
 
                     <button
-                      onClick={() => setIsReservationOpen(true)}
+                      onClick={() => {
+                        if (item.tag === "cinema") setRsvpEvent("film");
+                        else if (item.tag === "party") setRsvpEvent("dj");
+                        else if (item.tag === "wellness") setRsvpEvent("yoga");
+                        setIsRsvpOpen(true);
+                      }}
                       className="w-full md:w-max px-8 py-4 bg-brand-accent hover:bg-brand-accentHover text-brand-dark rounded-full font-sans text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-brand-accent/20"
                     >
                       {t(language, "Rezervă Acum Locul", "Book Your Spot Now")}
@@ -1046,8 +1092,8 @@ export default function App() {
                     <li className="flex items-center gap-2">✓ {t(language, "Un pahar de Prosecco", "One glass of Prosecco")}</li>
                   </ul>
                 </div>
-                <button 
-                  onClick={() => setIsReservationOpen(true)}
+                <button
+                  onClick={() => { setRsvpEvent("film"); setIsRsvpOpen(true); }}
                   className="w-full py-3 bg-transparent border border-white/20 hover:border-brand-accent text-white hover:text-brand-dark hover:bg-brand-accent rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300"
                 >
                   {t(language, "Rezervă Miercuri", "Book Wednesday")}
@@ -1069,8 +1115,8 @@ export default function App() {
                     <li className="flex items-center gap-2">✓ {t(language, "Serviciu VIP concierge dedicat", "VIP dedicated concierge")}</li>
                   </ul>
                 </div>
-                <button 
-                  onClick={() => setIsReservationOpen(true)}
+                <button
+                  onClick={() => { setRsvpEvent("dj"); setIsRsvpOpen(true); }}
                   className="w-full py-3 bg-brand-accent hover:bg-brand-accentHover text-brand-dark rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 shadow-md"
                 >
                   {t(language, "Rezervă Weekend", "Book Weekend")}
@@ -1088,8 +1134,8 @@ export default function App() {
                     <li className="flex items-center gap-2">✓ {t(language, "Covoraș & prosop asigurat", "Yoga mat & towel provided")}</li>
                   </ul>
                 </div>
-                <button 
-                  onClick={() => setIsReservationOpen(true)}
+                <button
+                  onClick={() => { setRsvpEvent("yoga"); setIsRsvpOpen(true); }}
                   className="w-full py-3 bg-transparent border border-white/20 hover:border-brand-accent text-white hover:text-brand-dark hover:bg-brand-accent rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300"
                 >
                   {t(language, "Rezervă Duminică", "Book Sunday")}
@@ -1455,8 +1501,8 @@ export default function App() {
                       }
                     }}
                     className={`flex-1 text-center px-6 py-3.5 border font-bold text-[10px] uppercase tracking-widest rounded-full transition-all flex items-center justify-center gap-2 ${showSalon1Gallery
-                        ? "bg-white text-brand-dark border-white hover:bg-white/90"
-                        : "bg-transparent text-white border-white/20 hover:border-brand-accent hover:text-brand-accent"
+                      ? "bg-white text-brand-dark border-white hover:bg-white/90"
+                      : "bg-transparent text-white border-white/20 hover:border-brand-accent hover:text-brand-accent"
                       }`}
                   >
                     {showSalon1Gallery ? t(language, "Închide Galeria", "Close Gallery") : t(language, "Vezi Galeria", "View Gallery")}
@@ -1526,8 +1572,8 @@ export default function App() {
                       }
                     }}
                     className={`flex-1 text-center px-6 py-3.5 border font-bold text-[10px] uppercase tracking-widest rounded-full transition-all flex items-center justify-center gap-2 ${showSalon2Gallery
-                        ? "bg-white text-brand-dark border-white hover:bg-white/90"
-                        : "bg-transparent text-white border-white/20 hover:border-brand-accent hover:text-brand-accent"
+                      ? "bg-white text-brand-dark border-white hover:bg-white/90"
+                      : "bg-transparent text-white border-white/20 hover:border-brand-accent hover:text-brand-accent"
                       }`}
                   >
                     {showSalon2Gallery ? t(language, "Închide Galeria", "Close Gallery") : t(language, "Vezi Galeria", "View Gallery")}
@@ -1767,8 +1813,8 @@ export default function App() {
                           setCalculatorStep(2);
                         }}
                         className={`border rounded-full py-3.5 px-6 flex items-center justify-center gap-2 transition-all text-[10px] font-bold uppercase tracking-widest ${eventType === item.id
-                            ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
-                            : "border-white/10 text-gray-400 hover:text-white hover:border-white/20"
+                          ? "border-brand-accent bg-brand-accent/10 text-brand-accent"
+                          : "border-white/10 text-gray-400 hover:text-white hover:border-white/20"
                           }`}
                       >
                         {item.icon}
@@ -2150,13 +2196,13 @@ export default function App() {
 
   const renderPool = () => {
     return (
-      <div className="min-h-screen bg-[#f9f9ff] text-[#001c3a] antialiased overflow-x-hidden pt-24 md:pt-32 animate-fade-in font-sans">
+      <div className="min-h-screen bg-[#f9f9ff] text-[#001c3a] antialiased overflow-x-hidden animate-fade-in font-sans">
         {/* Elegant Hero Section with custom image background */}
-        <header className="relative w-full min-h-[75vh] flex flex-col items-center justify-center text-center px-6 md:px-20 mb-16 rounded-none overflow-hidden border-b border-white shadow-2xl">
+        <header className="relative w-full min-h-[75vh] flex flex-col items-center justify-center text-center px-6 md:px-20 pt-24 md:pt-32 mb-16 rounded-none overflow-hidden border-b border-white shadow-2xl">
           {/* Absolute background image with high-end light overlay */}
           <div className="absolute inset-0 z-0">
             <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYyYGgWo1poSdkLs0H0Mr974sjLUo59GuAcOgZzpDaZfxa8H4g1pynR5j9eKbmsQG_Mq3-3zp3p3AJ-w3JITOLJLU2Jkx-RaPOb8xpH2SY6SbiNoh8t7OXZIuKAIlVbiZyAFeQOsqFFbOdekZ_TDfWFP55gz28yof9Jr6zO1f0W3CElJ2Q-_Rcu1U4cO0mANr7OjZYrX1_ZnBUvvYr3yGwt5NzZQxPg9pdmChOQYgCuzU66FScCVvTD7eskrMI92Wq49eFdbyI13s"
+              src="/piscina.jpg"
               alt="Pool & Terrace Floreasca luxury setup"
               className="w-full h-full object-cover scale-100 transition-all duration-[2s]"
             />
@@ -2192,7 +2238,7 @@ export default function App() {
                   onClick={() => setIsReservationOpen(true)}
                   className="bg-white/50 border border-[#005ab7]/20 text-[#005ab7] font-sans text-xs font-bold uppercase tracking-widest px-8 py-4 rounded-full hover:bg-white/85 hover:shadow-md transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-2"
                 >
-                  <span>{t(language, "Discover the Garden")}</span>
+                  <span>{t(language, "Descoperă Grădina", "Discover the Garden")}</span>
                   <Sparkles size={14} />
                 </button>
               </div>
@@ -2222,7 +2268,7 @@ export default function App() {
               <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
                 <img
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuARcsc_Gm9E6BsKify_EMm3AQfq_TwSn7DHq5Bfyodb876MU3NMrwpwv3gNovqyydqYQmP4Tkj9lBeqy2SslvbtLPp6BoXK0wjwOm5ahXsILLkCPiKhnnjG-pwDKv82dbkW0Sn7JwszAst8S1w6gDlWRPWaUlhNkFLcmSxcvFzEyJPhS3ohFpQkpIp4nqDLDlhRTnhNwHfY1ipEEJ2uExCoQ66Oe_MoUqjznbHlEd90CeIvOAWPcpY6JvJV-OtAPJkl1AX5dqVHf0o"
+                  src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1200&q=80"
                   alt="Crystal water close-up"
                 />
               </div>
@@ -2254,7 +2300,7 @@ export default function App() {
               <div className="h-64 relative overflow-hidden shrink-0">
                 <img
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRsHT3lTmnE7fsOathg_ennkoFtlPA1Xgr3V1e1Us-v-qifXVUA-lI6W7f0WrH2nnosEbxM_V6A0G-SVvzY6iQPBRdt1odxzzNZwI4LRK3SlI37R8360LdRzxI606LxU1nzmuDSZd-5allvt4cGT-fZxD2FABean1jZUWlwcN4FBsYAqxSrrdRBYEg67m6Zhuo_jvFYsE3jir7PEaAjgE6Spage7gXGqqKOlhQhYz6gG5-RvwCwIi4kGgs6t32G3J2bPmYM0Reujw"
+                  src="https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=1200&q=80"
                   alt="Cocktails by the pool"
                 />
               </div>
@@ -2325,7 +2371,7 @@ export default function App() {
             <div className="lg:col-span-7 rounded-[24px] overflow-hidden shadow-xl shadow-[#005ab7]/5 relative min-h-[350px] lg:min-h-full group border border-white">
               <img
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUiQHFsr6ul-5gqIWbwYZtzQT3GOgl94kg6fr7owfsqOtYS9zM4Xb3R_y0J7SXm45p4GoBhx-eKkIfVK_uPLpm2M1N29AABgvx-j9pCkGbL8H8R8byt0CvhvlBHNFJvDVhaIq5dBXdjmWwRTyfbnH2pJQw0CSTELsHQY-ZAeiV4yYeL_tnONpSAkvnFiu-0ti5L0LcXy6xK_WQkxtsWvmb0AMHpvTZmd4WpV44MIRGvlEBaFZU7V4ghY8vG5fXcA1j2sr-XtsKAWI"
+                src="https://images.unsplash.com/photo-1507504038482-7621c51873f6?auto=format&fit=crop&w=1200&q=80"
                 alt="Floreasca premium lounge terrace"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8 md:p-12">
@@ -2679,7 +2725,7 @@ export default function App() {
       },
       {
         id: "events",
-        label: t(language, "Evenimente Private", "Private Events"),
+        label: t(language, "Evenimente", "Events"),
         icon: <CalendarHeart size={18} />,
       },
     ];
@@ -2931,6 +2977,155 @@ export default function App() {
         onClose={() => setIsReservationOpen(false)}
         lang={language}
       />
+
+      {/* ═══ RSVP Bottom Sheet for Events ═══ */}
+      <div className={`fixed inset-0 z-[200] ${isRsvpOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div
+          className={`absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity duration-300 ${isRsvpOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          onClick={() => setIsRsvpOpen(false)}
+        ></div>
+        <div
+          className={`fixed z-[210] flex flex-col bg-[#1A1817] shadow-float overflow-hidden
+            inset-x-0 bottom-0 h-auto max-h-[85vh] rounded-t-[32px]
+            sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:right-auto sm:-translate-x-1/2 sm:w-[92%] sm:max-w-[560px] sm:rounded-[32px]
+            ${isRsvpOpen ? "translate-y-0 opacity-100 sm:-translate-y-1/2 sm:scale-100" : "translate-y-full opacity-0 pointer-events-none sm:translate-y-0 sm:scale-95 sm:opacity-0 sm:pointer-events-none"}`}
+          style={{ transition: "transform 0.4s cubic-bezier(0.32,0.72,0,1), opacity 0.3s, scale 0.3s" }}
+        >
+          {/* Handle & Header */}
+          <div className="flex flex-col items-center pt-3 pb-2 shrink-0 bg-[#1A1817] z-20 sticky top-0 border-b border-white/5">
+            <div className="h-1.5 w-12 rounded-full bg-gray-600/40 mb-4 sm:hidden"></div>
+            <div className="w-full px-6 flex items-center justify-between">
+              <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-brand-accent">RSVP</h1>
+              <button onClick={() => setIsRsvpOpen(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-28 no-scrollbar">
+            {/* Success state */}
+            <div className={`absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#1A1817] transition-all duration-500 ${rsvpStatus === "success" ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8 pointer-events-none"}`}>
+              <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pop-in">
+                  <Check size={36} strokeWidth={3} className="text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-serif text-white mb-2">{t(language, "Rezervare Confirmată", "Booking Confirmed")}</h2>
+              <p className="text-gray-400">{t(language, "Te așteptăm cu drag!", "We look forward to seeing you!")}</p>
+            </div>
+
+            <div className={`flex flex-col gap-6 transition-opacity duration-300 ${rsvpStatus === "success" ? "opacity-0" : "opacity-100"}`}>
+              {/* Name & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block font-mono text-[10px] text-gray-400 mb-2 uppercase tracking-[0.1em]">{t(language, "Nume Complet", "Full Name")}</label>
+                  <input
+                    type="text"
+                    value={rsvpName}
+                    onChange={(e) => setRsvpName(e.target.value)}
+                    placeholder={t(language, "Ex: Alexandru Popescu", "Ex: John Smith")}
+                    required
+                    className="w-full bg-transparent border-b border-white/20 px-0 py-3 text-white focus:outline-none focus:border-brand-accent transition-colors text-base placeholder:text-gray-600"
+                  />
+                </div>
+                <div>
+                  <label className="block font-mono text-[10px] text-gray-400 mb-2 uppercase tracking-[0.1em]">{t(language, "Telefon", "Phone")}</label>
+                  <input
+                    type="tel"
+                    value={rsvpPhone}
+                    onChange={(e) => setRsvpPhone(e.target.value)}
+                    placeholder="+40 7xx xxx xxx"
+                    required
+                    className="w-full bg-transparent border-b border-white/20 px-0 py-3 text-white focus:outline-none focus:border-brand-accent transition-colors text-base placeholder:text-gray-600"
+                  />
+                </div>
+              </div>
+
+              {/* Event Selection */}
+              <div>
+                <label className="block font-mono text-[10px] text-gray-400 mb-2 uppercase tracking-[0.1em]">{t(language, "Selectează Evenimentul", "Select Event")}</label>
+                <select
+                  value={rsvpEvent}
+                  onChange={(e) => setRsvpEvent(e.target.value)}
+                  className="w-full bg-transparent border-b border-white/20 px-0 py-3 text-white focus:outline-none focus:border-brand-accent transition-colors text-base appearance-none"
+                  style={{ background: "#1A1817" }}
+                >
+                  <option value="film" style={{ background: "#1A1817" }}>{t(language, "Seri de Film sub Stele", "Movie Nights Under the Stars")}</option>
+                  <option value="dj" style={{ background: "#1A1817" }}>Sunset DJ Sessions</option>
+                  <option value="yoga" style={{ background: "#1A1817" }}>Morning Yoga & Mindfulness</option>
+                </select>
+              </div>
+
+              {/* Guest Count */}
+              <div>
+                <label className="block font-mono text-[10px] text-gray-400 mb-2 uppercase tracking-[0.1em]">{t(language, "Număr de Persoane", "Number of Guests")}</label>
+                <select
+                  value={rsvpGuests}
+                  onChange={(e) => setRsvpGuests(e.target.value)}
+                  className="w-full bg-transparent border-b border-white/20 px-0 py-3 text-white focus:outline-none focus:border-brand-accent transition-colors text-base appearance-none"
+                  style={{ background: "#1A1817" }}
+                >
+                  <option value="1" style={{ background: "#1A1817" }}>{t(language, "1 Persoană", "1 Person")}</option>
+                  <option value="2" style={{ background: "#1A1817" }}>{t(language, "2 Persoane", "2 People")}</option>
+                  <option value="3" style={{ background: "#1A1817" }}>{t(language, "3 Persoane", "3 People")}</option>
+                  <option value="4" style={{ background: "#1A1817" }}>{t(language, "4 Persoane", "4 People")}</option>
+                  <option value="5+" style={{ background: "#1A1817" }}>{t(language, "Grup (5+ Persoane)", "Group (5+ People)")}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Bottom Action */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-[#1A1817] via-[#1A1817] to-transparent pt-10 pointer-events-none">
+            <button
+              onClick={async () => {
+                setRsvpStatus("loading");
+                try {
+                  await supabase.from("reservations").insert([{
+                    guest_name: rsvpName || "Event Guest",
+                    guest_phone: rsvpPhone,
+                    party_size: parseInt(rsvpGuests) || 2,
+                    reservation_time: new Date().toISOString(),
+                    status: "confirmed"
+                  }]);
+                  setRsvpStatus("success");
+                  playSuccessSound();
+                  setTimeout(() => {
+                    setIsRsvpOpen(false);
+                    setTimeout(() => {
+                      setRsvpStatus("idle");
+                      setRsvpName("");
+                      setRsvpPhone("");
+                      setRsvpEvent("film");
+                      setRsvpGuests("2");
+                    }, 400);
+                  }, 2500);
+                } catch {
+                  setRsvpStatus("idle");
+                  alert(t(language, "A apărut o eroare.", "An error occurred."));
+                }
+              }}
+              disabled={rsvpStatus !== "idle"}
+              className={`pointer-events-auto w-full h-[52px] rounded-full text-white font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] ${rsvpStatus === "success"
+                ? "bg-green-500 shadow-[0_8px_32px_rgba(34,197,94,0.3)]"
+                : "bg-brand-accent shadow-glow hover:bg-brand-accentHover text-brand-dark"
+                }`}
+            >
+              {rsvpStatus === "loading" ? (
+                <Loader2 size={24} className="animate-spin" />
+              ) : rsvpStatus === "success" ? (
+                <Check size={24} className="animate-pop-in" />
+              ) : (
+                <>
+                  {t(language, "Confirmă Rezervarea", "Confirm Booking")}
+                  <ArrowRight size={20} />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <DietaryFilterModal
         isOpen={isDietaryModalOpen}
